@@ -1,0 +1,40 @@
+import cv2
+import mediapipe as mp
+import os
+import csv
+
+# MediaPipe Pose setup
+mp_pose = mp.solutions.pose
+pose = mp_pose.Pose(static_image_mode=True)
+
+# Path to the folder containing pose images, e.g., "/path/to/pose_data/class1"
+image_dir = 'Various_Dataset'  # Change to your path
+
+# Prepare CSV to store the extracted landmarks
+output_csv = 'landmarks4_v1.csv'
+with open(output_csv, 'w', newline='') as f:
+    csv_writer = csv.writer(f)
+    # Writing CSV header (x, y coordinates for each landmark)
+    header = ['class']
+    for i in range(33):  # MediaPipe Pose outputs 33 landmarks
+        header.extend([f'x_{i}', f'y_{i}'])
+    csv_writer.writerow(header)
+
+    # Loop through each image and extract landmarks
+    for class_label in os.listdir(image_dir):  # Folder names as class labels
+        class_folder = os.path.join(image_dir, class_label)
+        if os.path.isdir(class_folder):
+            for image_file in os.listdir(class_folder):
+                image_path = os.path.join(class_folder, image_file)
+                image = cv2.imread(image_path)
+
+                # Convert the image to RGB and process it with MediaPipe Pose
+                results = pose.process(cv2.cvtColor(image, cv2.COLOR_BGR2RGB))
+                if results.pose_landmarks:
+                    landmarks = results.pose_landmarks.landmark
+                    row = [class_label]  # First column is the class label
+                    for lm in landmarks:
+                        row.extend([lm.x, lm.y])  # Add x, y coordinates of each landmark
+                    csv_writer.writerow(row)
+
+print(f"Pose landmarks saved to {output_csv}")

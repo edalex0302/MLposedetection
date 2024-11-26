@@ -1,0 +1,36 @@
+import pandas as pd
+from sklearn.model_selection import train_test_split
+from sklearn.linear_model import LogisticRegression
+from sklearn.metrics import classification_report
+import joblib  # For saving the model
+
+# Load the CSV with pose landmarks
+data = pd.read_csv('MEDIAPIPE/landmarks4_v1.csv')
+
+# Split features (X) and labels (y)
+X = data.drop('class', axis=1)  # All columns except 'class' are features
+y = data['class']  # 'class' column is the target label
+
+# Split the data into train and test sets
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+# Train a Logistic Regression classifier
+logistic_classifier = LogisticRegression(
+    max_iter=500,          # Maximum number of iterations
+    multi_class='auto',    # Automatically handle multi-class problems
+    solver='lbfgs',        # LBFGS is efficient for small to medium datasets
+    random_state=42
+)
+
+# Train the model
+logistic_classifier.fit(X_train, y_train)
+
+# Save the trained Logistic Regression model
+joblib.dump(logistic_classifier, 'logistic_pose_model.joblib')
+print("Logistic Regression model saved as 'logistic_pose_model.joblib'.")
+
+# Test the classifier
+y_pred = logistic_classifier.predict(X_test)
+
+# Print classification report to evaluate performance
+print(classification_report(y_test, y_pred))

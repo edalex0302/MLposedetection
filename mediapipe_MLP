@@ -1,0 +1,37 @@
+import pandas as pd
+from sklearn.model_selection import train_test_split
+from sklearn.neural_network import MLPClassifier
+from sklearn.metrics import classification_report
+import joblib  # For saving the model
+
+# Load the CSV with pose landmarks
+data = pd.read_csv('MEDIAPIPE/landmarks4_v1.csv')
+
+# Split features (X) and labels (y)
+X = data.drop('class', axis=1)  # All columns except 'class' are features
+y = data['class']  # 'class' column is the target label
+
+# Split the data into train and test sets
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+# Train an MLP Classifier
+mlp_classifier = MLPClassifier(
+    hidden_layer_sizes=(100,),  # One hidden layer with 100 neurons
+    activation='relu',          # ReLU activation function
+    solver='adam',              # Adam optimizer
+    max_iter=500,               # Maximum number of iterations
+    random_state=42
+)
+
+# Train the model
+mlp_classifier.fit(X_train, y_train)
+
+# Save the trained MLP model
+joblib.dump(mlp_classifier, 'mlp_pose_model.joblib')
+print("MLP Classifier model saved as 'mlp_pose_model.joblib'.")
+
+# Test the classifier
+y_pred = mlp_classifier.predict(X_test)
+
+# Print classification report to evaluate performance
+print(classification_report(y_test, y_pred))
